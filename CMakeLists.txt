@@ -31,9 +31,11 @@ include_directories(include)
 add_executable(kd-tree-test
     include/kdtree/kdtree_cluster_mask.hpp
     include/kdtree/kdtree_clustering.hpp
+    include/kdtree/kdtree_node.hpp
     include/kdtree/kdtree.hpp
-    include/kdtree/buffered_kdtree.hpp
     include/kdtree/buffered_kdtree_clustering.hpp
+    include/kdtree/buffered_kdtree_node.hpp
+    include/kdtree/buffered_kdtree.hpp
     include/kdtree/kdtree_dotty.hpp
     src/kd-tree-test.cpp
 )
