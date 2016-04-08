@@ -1,9 +1,9 @@
-#include <kd-tree/kdtree_cluster_mask.hpp>
-#include <kd-tree/kdtree_clustering.hpp>
-#include <kd-tree/kdtree.hpp>
-#include <kd-tree/buffered_kdtree.hpp>
-#include <kd-tree/buffered_kdtree_clustering.hpp>
-#include <kd-tree/kdtree_dotty.hpp>
+#include <kdtree/kdtree_cluster_mask.hpp>
+#include <kdtree/kdtree_clustering.hpp>
+#include <kdtree/kdtree.hpp>
+#include <kdtree/buffered_kdtree.hpp>
+#include <kdtree/buffered_kdtree_clustering.hpp>
+#include <kdtree/kdtree_dotty.hpp>
 #include <ctime>
 #include <vector>
 
