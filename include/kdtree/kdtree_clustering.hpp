@@ -19,9 +19,7 @@ struct KDTreeClustering {
     std::size_t              cluster_count;
 
     KDTreeClustering(const typename KDTreeType::Ptr &kdtree) :
-        kdtree(kdtree),
-        cluster_count(0),
-        bin_threshold(0)
+        kdtree(kdtree)
     {
     }
 
