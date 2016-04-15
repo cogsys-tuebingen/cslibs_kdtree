@@ -39,6 +39,9 @@ struct fill<0, KDTreeClusterMask>
     }
 };
 
+/**
+ * @brief The Mask struct can be used for ternary couting depending on the dimension given to it.
+ */
 template<int Dim>
 struct KDTreeClusterMask {
     static const std::size_t rows = kdtree::pow3<Dim>::value;
