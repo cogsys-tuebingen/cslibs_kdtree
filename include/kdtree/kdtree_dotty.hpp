@@ -3,8 +3,12 @@
 
 #include <deque>
 #include <map>
+#include <cmath>
 #include <fstream>
 #include <random>
+
+#include <kdtree/buffered_kdtree.hpp>
+#include <kdtree/kdtree.hpp>
 
 namespace kdtree {
 struct Color {
@@ -15,10 +19,19 @@ struct Color {
     {
     }
 
-    Color (double random) {
-        value[0] = random;
+    Color (double r) {
+        value[0] = r;
         value[1] = 0.5;
         value[2] = 1.0;
+    }
+
+    Color (double r,
+           double g,
+           double b)
+    {
+        value[0] = r;
+        value[1] = g;
+        value[2] = b;
     }
 
     void writeStyle(std::ofstream &out)
@@ -30,6 +43,7 @@ struct Color {
     }
 };
 
+template<bool full_random = false>
 struct ColorMap {
     std::map<int, Color>                   palette;
     std::default_random_engine             generator;
@@ -43,17 +57,36 @@ struct ColorMap {
     void writeStyle(const int id,
                     std::ofstream &out)
     {
-        if(palette.find(id) == palette.end())
-            palette.insert(std::make_pair(id, Color(random(generator))));
+        if(palette.find(id) == palette.end()) {
+            if(full_random)
+                palette.insert(std::make_pair(id, Color(random(generator),
+                                                        random(generator),
+                                                        random(generator))));
+            else
+                palette.insert(std::make_pair(id, Color(random(generator))));
+        }
         palette[id].writeStyle(out);
     }
 
+    void getColor(const int id,
+                  Color &color)
+    {
+        if(palette.find(id) == palette.end()) {
+            if(full_random)
+                palette.insert(std::make_pair(id, Color(random(generator),
+                                                        random(generator) ,
+                                                        random(generator))));
+            else
+                palette.insert(std::make_pair(id, Color(random(generator))));
+        }
+        color = palette[id];
+    }
 };
 
 template<typename T, int Dim>
 struct Dotty {
     typedef kdtree::KDTree<T, Dim> KDTreeType;
-    ColorMap                       color_palette;
+    ColorMap<>                     color_palette;
 
     void write(KDTreeType tree,
                std::ofstream &out)
@@ -135,7 +168,7 @@ namespace buffered {
 template<typename NodeType>
 struct Dotty {
     typedef kdtree::buffered::KDTree<NodeType> KDTreeType;
-    ColorMap color_palette;
+    ColorMap<> color_palette;
 
     void write(KDTreeType &tree,
                std::ofstream &out)

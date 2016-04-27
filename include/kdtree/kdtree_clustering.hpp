@@ -32,6 +32,7 @@ struct KDTreeClustering {
 
     inline void cluster()
     {
+        cluster_count = 0;
         queue.reserve(kdtree->leafCount());
         kdtree->getLeaves(queue, true);
         for(NodePtr &node : queue) {
@@ -39,6 +40,7 @@ struct KDTreeClustering {
                 continue;
             node->cluster = cluster_count;
             ++cluster_count;
+            assert(node->cluster > -1);
             clusterNode(node);
         }
     }
@@ -54,6 +56,7 @@ struct KDTreeClustering {
                 continue;
             if(neighbour->cluster > -1)
                 continue;
+            assert(neighbour->cluster == -1);
             neighbour->cluster = node->cluster;
             clusterNode(neighbour);
         }
