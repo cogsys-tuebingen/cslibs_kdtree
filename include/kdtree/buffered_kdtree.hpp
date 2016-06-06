@@ -80,6 +80,12 @@ public:
             getLeavesRecursive(buffer_, reset_cluster, leaves);
     }
 
+    inline void resetClusters()
+    {
+        if(nodes_ > 0)
+            resetClustersRecursive(buffer_);
+    }
+
     inline void getNodes(NodeType** nodes)
     {
         NodeType *ptr = buffer_;
@@ -87,7 +93,7 @@ public:
             nodes[i] = ptr;
     }
 
-    inline void getNodes(std::vector<NodeType*> nodes)
+    inline void getNodes(std::vector<NodeType*> &nodes)
     {
         NodeType *ptr = buffer_;
         for(std::size_t i = 0 ; i < nodes_ ; ++i, ++ptr)
@@ -158,7 +164,16 @@ private:
             getLeavesRecursive(node->left, reset_cluster, leaves);
             getLeavesRecursive(node->right,reset_cluster, leaves);
         }
+    }
 
+    inline void resetClustersRecursive(NodeType *node)
+    {
+        if(node->isLeaf()) {
+             node->cluster = -1;
+        } else {
+            resetClustersRecursive(node->left);
+            resetClustersRecursive(node->right);
+        }
     }
 
     inline void getNodesRecursive(const NodeType *node,
