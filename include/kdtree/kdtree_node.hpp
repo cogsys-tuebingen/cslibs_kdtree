@@ -33,12 +33,16 @@ struct KDTreeNode {
 
     KDTreeNode(const KDTreeNodeType &other) :
         index(other.index),
+        left(nullptr),
+        right(nullptr),
         parent(other.parent),
         depth(other.depth),
         pivot_dim(other.pivot_dim),
         cluster(other.cluster)
     {
     }
+
+    KDTreeNode& operator = ( const KDTreeNode& other ) = delete; // non construction-copyable
 
     virtual inline Ptr clone() const
     {

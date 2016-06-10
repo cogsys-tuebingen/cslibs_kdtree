@@ -279,6 +279,23 @@ void test_buffered_kdtree_particles(const std::string &path)
     std::cout << " clustered in " << secs << "s" << std::endl;
     std::cout << "              " << secs * 1000.0 << "ms" << std::endl;
 
+    start = std::clock();
+    tree.reset(new kdtree::buffered::KDTree<PFBufferedKDTreeNode>(2 * samples.size() + 1));
+    for(Point &sample : samples) {
+        PFBufferedKDTreeNode node = PFKDTreeIndex::getBuffered(&sample);
+        tree->insertNode(node);
+    }
+
+    clustering = kdtree::buffered::KDTreeClustering<PFBufferedKDTreeNode>(tree);
+    clustering.cluster();
+    end = clock();
+    secs = double(end - start) / CLOCKS_PER_SEC;
+    std::cout << "leaves " << tree->leafCount() << std::endl;
+    std::cout << "nodes " << tree->nodeCount() << std::endl;
+    std::cout << "clusters " << clustering.cluster_count << std::endl;
+    std::cout << " clustered in " << secs << "s" << std::endl;
+    std::cout << "              " << secs * 1000.0 << "ms" << std::endl;
+
     //    kdtree::buffered::Dotty<PFBufferedKDTreeNode> dotty;
     //    std::ofstream out("/tmp/particle_buffered.dot");
     //    dotty.write(*tree, out);

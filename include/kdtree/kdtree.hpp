@@ -20,6 +20,9 @@ public:
     {
     }
 
+    KDTree( const KDTree& other ) = delete; // non construction-copyable
+    KDTree& operator=( const KDTree& ) = delete; // non copyable
+
     inline void clear()
     {
         leaves = 0;

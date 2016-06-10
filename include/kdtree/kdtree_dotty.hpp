@@ -88,7 +88,7 @@ struct Dotty {
     typedef kdtree::KDTree<T, Dim> KDTreeType;
     ColorMap<>                     color_palette;
 
-    void write(KDTreeType tree,
+    void write(KDTreeType &tree,
                std::ofstream &out)
     {
         out << "graph kdtree {" << std::endl;
@@ -184,7 +184,7 @@ struct Dotty {
     void writeStyles(KDTreeType &tree, std::ofstream &out)
     {
         std::vector<NodeType*> nodes;
-        tree.getNodes(nodes);
+        tree.getNodesDynamic(nodes);
         for(const NodeType *node : nodes)
         {
             writeNode(node,  out);

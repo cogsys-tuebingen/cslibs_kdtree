@@ -34,16 +34,7 @@ struct KDTreeNode {
     {
     }
 
-    KDTreeNode(const KDTreeNodeType &other) :
-        index(other.index),
-        parent(other.parent),
-        wrapped(other.wrapped),
-        depth(other.depth),
-        pivot_dim(other.pivot_dim),
-        cluster(other.cluster)
-    {
-    }
-
+    KDTreeNode( const KDTreeNode& other ) = delete; // non construction-copyable
 
     KDTreeNode(KDTreeNodeType &&other) noexcept :
         index(std::move(other.index)),

@@ -15,7 +15,8 @@ struct KDTreeClustering {
     typedef typename KDTreeType::NodeIndex   NodeIndex;
     typename KDTreeType::Ptr                 kdtree;
     KDTreeClusterMask<NodeType::Dimension>   cluster_mask;
-    NodeType                               **queue;
+    std::vector<NodeType*>                   queue;
+    NodeType**                               queue_ptr_;
     std::size_t                              queue_size;
     std::size_t                              queue_pos;
     std::size_t                              cluster_count;
@@ -23,16 +24,38 @@ struct KDTreeClustering {
 
     KDTreeClustering(const typename KDTreeType::Ptr &kdtree) :
         kdtree(kdtree),
-        queue(new NodeType*[kdtree->nodeCount()]),
+        queue(kdtree->nodeCount()),
+        queue_ptr_(queue.data()),
         queue_size(kdtree->nodeCount()),
         queue_pos(0),
         cluster_count(0)
     {
     }
 
+    KDTreeClustering(const KDTreeClustering &other) :
+        kdtree(other.kdtree),
+        queue(other.queue),
+        queue_ptr_(queue.data()),
+        queue_size(other.queue.size()),
+        queue_pos(other.queue_pos),
+        cluster_count(other.cluster_count)
+    {
+    }
+
+    KDTreeClustering<NodeType> & operator = (const KDTreeClustering<NodeType> &other)
+    {
+        kdtree = other.kdtree;
+        queue = other.queue;
+        queue_ptr_ = queue.data();
+        queue_size = other.queue_size;
+        queue_pos  = other.queue_pos;
+        cluster_count = other.cluster_count;
+
+        return *this;
+    }
+
     virtual ~KDTreeClustering()
     {
-        delete[] queue;
     }
 
     inline int getCluster(const NodeIndex &index)
@@ -45,9 +68,10 @@ struct KDTreeClustering {
 
     inline void cluster()
     {
+
         kdtree->getNodes(queue);
         for(std::size_t i = 0 ; i < queue_size ; ++i) {
-            NodeType *node = queue[i];
+            NodeType *node = queue_ptr_[i];
             if(node->isLeaf()) {
                 if(node->cluster > -1)
                     continue;

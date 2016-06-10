@@ -17,23 +17,27 @@ public:
     typedef typename NodeType::Index   NodeIndex;
 
     KDTree(const std::size_t buffer_size) :
-        buffer_(new NodeType[buffer_size]),
+        buffer_(buffer_size),
+        buffer_ptr_(buffer_.data()),
         buffer_size_(buffer_size),
         leaves_(0),
         nodes_(0)
     {
     }
 
+    KDTree( const KDTree& other ) = delete; // non construction-copyable
+    KDTree& operator=( const KDTree& ) = delete; // non copyable
+
     virtual ~KDTree()
     {
-        delete[] buffer_;
     }
 
     inline void clear()
     {
         leaves_ = 0;
         nodes_ = 0;
-        std::memset(buffer_, 0, sizeof(NodeType) * buffer_size_);
+        buffer_.resize(buffer_size_);
+        buffer_ptr_ = buffer_.data();
     }
 
     inline std::size_t leafCount()
@@ -48,7 +52,7 @@ public:
 
     inline NodeType* getRoot()
     {
-        return buffer_;
+        return buffer_ptr_;
     }
 
     inline NodeType* find(const NodeIndex &index)
@@ -56,7 +60,7 @@ public:
         if(nodes_ == 0)
             return nullptr;
 
-       return findNodeRecursive(index, buffer_);
+       return findNodeRecursive(index, buffer_ptr_);
 
     }
 
@@ -64,12 +68,12 @@ public:
     {
         /// no root of tree yet
         if(nodes_ == 0) {
-            (*buffer_) = NodeType();
-            (*buffer_) = node;
+            (*buffer_ptr_) = NodeType();
+            (*buffer_ptr_) = node;
             leaves_ = 1;
             nodes_ = 1;
         } else {
-            insertNodeRecursive(node, buffer_);
+            insertNodeRecursive(node, buffer_ptr_);
         }
     }
 
@@ -77,31 +81,38 @@ public:
                           const bool reset_cluster = false)
     {
         if(nodes_ > 0)
-            getLeavesRecursive(buffer_, reset_cluster, leaves);
+            getLeavesRecursive(buffer_ptr_, reset_cluster, leaves);
     }
 
     inline void resetClusters()
     {
         if(nodes_ > 0)
-            resetClustersRecursive(buffer_);
+            resetClustersRecursive(buffer_ptr_);
     }
 
-    inline void getNodes(NodeType** nodes)
+    inline void getNodesDynamic(std::vector<NodeType*> &nodes)
     {
-        NodeType *ptr = buffer_;
-        for(std::size_t i = 0 ; i < nodes_ ; ++i, ++ptr)
-            nodes[i] = ptr;
-    }
-
-    inline void getNodes(std::vector<NodeType*> &nodes)
-    {
-        NodeType *ptr = buffer_;
+        NodeType *ptr = buffer_ptr_;
         for(std::size_t i = 0 ; i < nodes_ ; ++i, ++ptr)
             nodes.emplace_back(ptr);
     }
 
+    inline void getNodes(std::vector<NodeType*> &nodes)
+    {
+        assert(nodes.size() == nodes_);
+        NodeType *buffer_ptr = buffer_ptr_;
+        NodeType **nodes_ptr = nodes.data();
+        for(std::size_t i = 0 ; i < nodes_ ; ++i, ++buffer_ptr, ++nodes_ptr)
+            *nodes_ptr = buffer_ptr;
+    }
+
+
+
+
+
 private:
-    NodeType             *buffer_;
+    std::vector<NodeType> buffer_;
+    NodeType             *buffer_ptr_;
     std::size_t           buffer_size_;
     std::size_t leaves_;
     std::size_t nodes_;
@@ -116,7 +127,7 @@ private:
                 current->wrapped.overwrite(node.wrapped);
             } else {
                 if(nodes_ + 2 <= buffer_size_) {
-                    splitNode(node, current, buffer_ + nodes_, buffer_ + nodes_ + 1);
+                    splitNode(node, current, buffer_ptr_ + nodes_, buffer_ptr_ + nodes_ + 1);
                     ++leaves_;
                     nodes_+=2;
                 }
