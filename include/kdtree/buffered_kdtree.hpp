@@ -203,8 +203,8 @@ private:
                           NodeType *right)
     {
         NodeType &node = *current;
-        new (left) NodeType;
-        new (right) NodeType;
+        *left = NodeType();
+        *right = NodeType();
 
         typename NodeType::Type max_split = 0;
         node.pivot_dim = -1;
