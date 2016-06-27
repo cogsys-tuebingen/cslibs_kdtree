@@ -124,7 +124,8 @@ void test(const std::vector<helper::Point>& samples)
 
     auto end = clock::now();
     auto duration = end - start;
-    std::cout << "Building tree: " << std::chrono::duration_cast<ms>(duration).count() << "ms" << std::endl;
+    std::cout << "Time    : " << std::chrono::duration_cast<ms>(duration).count() << "ms" << std::endl;
+    std::cout << "Clusters: " << clustering.cluster_count() << std::endl;
 }
 
 }

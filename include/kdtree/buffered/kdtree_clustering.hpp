@@ -38,6 +38,11 @@ public:
     KDTreeIndexNeigbourGenerator(const Type& reference):
         _reference(reference)
     {
+        int idx = 0;
+        for (int i = -1; i <= 1; ++i)
+            for (int j = -1; j <= 1; ++j)
+                for (int k = -1; k <= 1; ++k, ++idx)
+                    offsets[idx] = {i, j, k};
     }
 
     template<typename T, typename F>
@@ -103,15 +108,21 @@ public:
         _cluster_count = cluster_idx;
     }
 
+    inline std::size_t cluster_count() const
+    {
+        return _cluster_count;
+    }
+
 private:
     inline void cluster(NodeType& node)
     {
         KDTreeIndexNeigbourGenerator<IndexTraits> neighbours(node.index);
-        neighbours.visit(_tree, [this](NodeType& neighbour)
+        neighbours.visit(_tree, [this,&node](NodeType& neighbour)
         {
             if (neighbour.data.cluster > -1)
                 return;
 
+            neighbour.data.cluster = node.data.cluster;
             cluster(neighbour);
         });
     }
