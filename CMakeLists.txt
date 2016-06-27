@@ -48,7 +48,7 @@ add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/kdtree_dotty.hpp
 
     include/kdtree/buffered/kdtree_clustering.hpp
-    include/kdtree/buffered/kdtree_node_index.hpp
+    include/kdtree/buffered/kdtree_node_neighbourhood.hpp
     include/kdtree/buffered/kdtree_node.hpp
     include/kdtree/buffered/kdtree.hpp
 )

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <chrono>
 #include <array>
+#include <iterator>
 
 #include "../include/kdtree/buffered/kdtree.hpp"
 #include "../include/kdtree/buffered/kdtree_clustering.hpp"
@@ -112,26 +113,28 @@ void test(const std::vector<helper::Point>& samples)
     using clock = std::chrono::steady_clock;
     using ms = std::chrono::duration<double, std::milli>;
 
-    auto start = clock::now();
+    clock::duration total;
+    for (int i = 0; i < 1000; ++i)
+    {
 
-    kdtree::buffered::KDTree<Index, Data> tree(2 * samples.size() + 1);
+        auto start = clock::now();
 
-    for (const helper::Point& pt : samples)
-        tree.insert(Index::create(pt), {pt});
+        kdtree::buffered::KDTree<Index, Data> tree(2 * samples.size() + 1);
 
-    kdtree::buffered::KDTreeClustering<decltype(tree)> clustering(tree);
-    clustering.cluster();
+        for (const helper::Point& pt : samples)
+            tree.insert(Index::create(pt), {pt});
 
-    auto end = clock::now();
-    auto duration = end - start;
-    std::cout << "Time    : " << std::chrono::duration_cast<ms>(duration).count() << "ms" << std::endl;
-    std::cout << "Clusters: " << clustering.cluster_count() << std::endl;
+        kdtree::buffered::KDTreeClustering<decltype(tree)> clustering(tree);
+        clustering.cluster();
+
+        auto end = clock::now();
+        total += end - start;
+    }
+    std::cout << "Time    : " << std::chrono::duration_cast<ms>(total).count() << "ms" << std::endl;
+    //std::cout << "Clusters: " << clustering.cluster_count() << std::endl;
 }
 
 }
-
-
-
 
 int main(int argc, char* argv[])
 {

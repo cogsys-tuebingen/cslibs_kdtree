@@ -11,12 +11,13 @@ template<typename ITraits, typename DType>
 class KDTreeNode
 {
 public:
-    typedef ITraits                         IndexTraits;
-    typedef typename IndexTraits::Type      IndexType;
-    typedef typename IndexTraits::PivotType   IndexPivotType;
+    typedef ITraits                                 IndexTraits;
+    typedef typename IndexTraits::Type              IndexType;
+    typedef typename IndexTraits::PivotType         IndexPivotType;
+    typedef DType                                   DataType;
+    typedef KDTreeNode<ITraits, DType>              NodeType;
+
     static constexpr std::size_t IndexDimension = IndexTraits::Dimension;
-    typedef DType                           DataType;
-    typedef KDTreeNode<ITraits, DType>        NodeType;
 
     KDTreeNode() :
         left(nullptr),
@@ -26,6 +27,7 @@ public:
     {
     }
 
+    /// disallow copy
     KDTreeNode(const KDTreeNode&) = delete;
     KDTreeNode& operator=(const KDTreeNode&) = delete;
 

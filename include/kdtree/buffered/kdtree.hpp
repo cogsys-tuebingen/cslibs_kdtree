@@ -21,6 +21,11 @@ public:
 
     static constexpr std::size_t DEFAULT_CAPACITY = 1024;
 
+    static_assert(std::is_default_constructible<DataType>::value,   "DataType not default constructible");
+    static_assert(std::is_move_assignable<DataType>::value,         "DataType not move assignable");
+    static_assert(std::is_default_constructible<IndexType>::value,  "IndexType not default constructible");
+    static_assert(std::is_move_assignable<IndexType>::value,        "IndexType not move assignable");
+
 public:
     KDTree(std::size_t capacity = DEFAULT_CAPACITY) :
         _capacity(capacity),
@@ -29,11 +34,11 @@ public:
     {
     }
 
-    // disallow copy
+    /// disallow copy
     KDTree(const KDTree&) = delete;
     KDTree& operator=(const KDTree&) = delete;
 
-    void clear()
+    inline void clear()
     {
         _size = 0;
         /// todo: clear vs reset each node state?
