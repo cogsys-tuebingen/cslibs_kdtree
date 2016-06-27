@@ -30,8 +30,12 @@ include_directories(include)
 
 add_executable(kd-tree-test
     src/kd-tree-test.cpp
+
 )
 
+add_executable(kdtree-buffered-test
+    src/kdtree-buffered-test.cpp
+)
 
 add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/kdtree_cluster_mask.hpp
@@ -42,5 +46,10 @@ add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/buffered_kdtree_node.hpp
     include/kdtree/buffered_kdtree.hpp
     include/kdtree/kdtree_dotty.hpp
+
+    include/kdtree/buffered/kdtree_clustering.hpp
+    include/kdtree/buffered/kdtree_node_index.hpp
+    include/kdtree/buffered/kdtree_node.hpp
+    include/kdtree/buffered/kdtree.hpp
 )
 
