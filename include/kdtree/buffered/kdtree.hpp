@@ -1,8 +1,26 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <stdexcept>
 #include "kdtree_node.hpp"
+
+namespace std
+{
+    template<>
+    struct hash<std::array<int, 3>>
+    {
+        typedef std::array<int, 3> argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const
+        {
+            result_type const h1 ( std::abs(s[0]) );
+            result_type const h2 ( std::abs(s[1]) );
+            result_type const h3 ( std::abs(s[2]) );
+            return h1 ^ (h2 << 10) ^ (h3 << 20);
+        }
+    };
+}
 
 namespace kdtree
 {
@@ -30,7 +48,8 @@ public:
     KDTree(std::size_t capacity = DEFAULT_CAPACITY) :
         _capacity(capacity),
         _size(0),
-        _nodes(capacity)
+        _nodes(capacity),
+        _node_lookup(DEFAULT_CAPACITY)
     {
     }
 
@@ -40,9 +59,12 @@ public:
 
     inline void clear()
     {
-        _size = 0;
         /// todo: clear vs reset each node state?
         _nodes.clear();
+        for (std::size_t i = 0; i < _size; ++i)
+            _nodes[i].clear();
+        _node_lookup.clear();
+        _size = 0;
     }
 
     inline void insert(IndexType index, DataType data)
@@ -55,7 +77,31 @@ public:
             _size += 1;
         }
         else
-            sicker_insert(&(_nodes[0]), std::move(index), std::move(data));
+        {
+//            auto find = _node_lookup.find(index);
+//            if (find != _node_lookup.end())
+//                find->second->merge(std::move(data));
+//            else
+                sicker_insert(&(_nodes[0]), std::move(index), std::move(data));
+        }
+    }
+
+    std::unordered_map<IndexType, DataType> aggregate;
+
+    inline void prepare(IndexType index, DataType data)
+    {
+        auto find = aggregate.find(index);
+        if (find != aggregate.end())
+            find->second.merge(std::move(data));
+        else
+            aggregate.emplace(std::move(index), std::move(data));
+    }
+
+    inline void load()
+    {
+        for (std::pair<IndexType, DataType>&& pair : aggregate)
+            insert(std::move(pair.first), std::move(pair.second));
+        aggregate.clear();
     }
 
     inline NodeType* find(const IndexType& index)
@@ -92,6 +138,8 @@ private:
                     throw std::length_error("Capacity to small, resize not yet implemented");
 
                 node->split(&(_nodes[_size + 0]), &(_nodes[_size + 1]), std::move(index), std::move(data));
+//                _node_lookup[_nodes[_size + 0].index] = &(_nodes[_size + 0]);
+//                _node_lookup[_nodes[_size + 1].index] = &(_nodes[_size + 1]);
                 _size += 2;
             }
         }
@@ -130,6 +178,7 @@ private:
     std::size_t _capacity;
     std::size_t _size;
     std::vector<NodeType> _nodes;
+    std::unordered_map<IndexType, NodeType*> _node_lookup;
 };
 
 }

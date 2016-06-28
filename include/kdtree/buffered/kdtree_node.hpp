@@ -27,10 +27,6 @@ public:
     {
     }
 
-    /// disallow copy
-    KDTreeNode(const KDTreeNode&) = delete;
-    KDTreeNode& operator=(const KDTreeNode&) = delete;
-
     inline constexpr bool is_leaf() const
     {
         return left == nullptr && right == nullptr;
@@ -88,6 +84,12 @@ public: /// todo: make private
 
         this->left = left;
         this->right = right;
+    }
+
+    inline void clear()
+    {
+        left = nullptr;
+        right = nullptr;
     }
 
 
