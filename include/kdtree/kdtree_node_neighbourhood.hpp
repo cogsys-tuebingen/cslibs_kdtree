@@ -5,8 +5,6 @@
 
 namespace kdtree
 {
-namespace buffered
-{
 namespace detail
 {
     namespace math
@@ -124,5 +122,4 @@ private:
     MaskType offsets;
 };
 
-}
 }

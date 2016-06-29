@@ -1,125 +1,134 @@
-#ifndef KDTREE_NODE_HPP
-#define KDTREE_NODE_HPP
+#pragma once
 
+#include <cstdint>
 #include <array>
-#include <memory>
 
-namespace kdtree {
-template<typename T, int Dim>
-struct KDTreeNode {
-    typedef std::array<T, Dim>              Index;
-    typedef KDTreeNode<T, Dim>              KDTreeNodeType;
-    typedef std::shared_ptr<KDTreeNodeType> Ptr;
+namespace std
+{
+    template<std::size_t N>
+    struct hash<std::array<int, N>>
+    {
+        typedef std::array<int, N> argument_type;
+        typedef std::size_t result_type;
+        static constexpr auto BITS = sizeof(result_type) * 8;
+        static constexpr auto SHIFT = BITS / N;
 
-    Index           index;
-    Ptr             left;
-    Ptr             right;
-    KDTreeNodeType *parent;
-    std::size_t depth;
-    int    pivot_dim;
-    double pivot_value;
-    int    cluster;
+        inline result_type operator()(argument_type const& s) const
+        {
+            result_type h = std::abs(s[0]);
+            for (std::size_t i = 1; i < N; ++i)
+                h ^= std::abs(s[i]) << SHIFT;
+            return h;
+        }
+    };
+}
+
+namespace kdtree
+{
+
+template<typename ITraits, typename DType>
+class KDTreeNode
+{
+public:
+    typedef ITraits                                 IndexTraits;
+    typedef typename IndexTraits::Type              IndexType;
+    typedef typename IndexTraits::PivotType         IndexPivotType;
+    typedef DType                                   DataType;
+    typedef KDTreeNode<ITraits, DType>              NodeType;
+
+    static constexpr std::size_t IndexDimension = IndexTraits::Dimension;
 
     KDTreeNode() :
         left(nullptr),
         right(nullptr),
-        parent(nullptr),
-        depth(0),
-        pivot_dim(-1),
-        pivot_value(0.0),
-        cluster(-1)
+        index(),
+        data()
     {
     }
 
-    KDTreeNode(const KDTreeNodeType &other) :
-        index(other.index),
+    KDTreeNode(IndexType&& index, DataType&& data) :
         left(nullptr),
         right(nullptr),
-        parent(other.parent),
-        depth(other.depth),
-        pivot_dim(other.pivot_dim),
-        cluster(other.cluster)
+        index(std::move(index)),
+        data(std::move(data))
     {
     }
 
-    KDTreeNode& operator = ( const KDTreeNode& other ) = delete; // non construction-copyable
-
-    virtual inline Ptr clone() const
-    {
-        Ptr node(new KDTreeNodeType(*this));
-        node->left = left;
-        node->right = right;
-        return node;
-    }
-
-    virtual inline Ptr copy() const
-    {
-        return Ptr(new KDTreeNodeType(*this));
-    }
-
-    inline bool isLeaf() const
+    inline constexpr bool is_leaf() const
     {
         return left == nullptr && right == nullptr;
     }
 
-    inline bool equals(const KDTreeNodeType &other) const
+    inline constexpr bool equals(const IndexType& index) const
     {
-        for(int i = 0 ; i < Dim ; ++i) {
-            if(other.index[i] != index[i])
-                return false;
-        }
-        return true;
+        return this->index == index;
     }
 
-    inline bool hasIndex(const Index &other_index) const
+    inline constexpr bool check_split(const IndexType& index) const
     {
-        for(int i = 0 ; i < Dim ; ++i) {
-            if(other_index[i] != index[i])
-                return false;
-        }
-        return true;
+        return index[pivot_index] < pivot_value;
     }
 
-    inline bool equals(const Ptr &other) const
+    inline void merge(DataType&& data)
     {
-        for(int i = 0; i < Dim ; ++i) {
-            if(other->index[i] != index[i])
-                return false;
-        }
-        return true;
+        this->data.merge(std::move(data));
     }
 
-    inline virtual void overwrite(const Ptr &other)
+public: /// todo: make private
+    inline void split(NodeType* left, NodeType* right, IndexType&& index, DataType&& data)
     {
-    }
-
-    inline virtual void split(const Ptr &other) {
-        T max_split = 0;
-        pivot_dim = -1;
-        for(int i = 0 ; i < Dim; ++i) {
-            T split = abs(index[i] - other->index[i]);
-            if(split > max_split) {
-                max_split = split;
-                pivot_dim = i;
+        {
+            IndexPivotType max_delta = 0;
+            for (std::size_t i = 0; i < IndexDimension; ++i)
+            {
+                auto delta = std::abs(this->index[i] - index[i]);
+                if (delta > max_delta)
+                {
+                    max_delta = delta;
+                    pivot_index = i;
+                }
             }
+
+            pivot_value = (this->index[pivot_index] + index[pivot_index]) / IndexPivotType(2.0);
         }
-        pivot_value = (index[pivot_dim] + other->index[pivot_dim]) / 2.0;
-        if(index[pivot_dim] < pivot_value) {
-            left  = copy();
-            ++(left->depth);
-            right = other;
-            ++(right->depth);
-            left->parent = this;
-            right->parent = this;
-        } else {
-            left  = other;
-            ++(left->depth);
-            right = copy();
-            ++(right->depth);
-            left->parent = this;
-            right->parent = this;
+
+        if (check_split(this->index))
+        {
+            std::swap(left->data, this->data);
+            left->index = this->index;
+
+            right->index = std::move(index);
+            right->data = std::move(data);
         }
+        else
+        {
+            std::swap(right->data, this->data);
+            right->index = this->index;
+
+            left->index = std::move(index);
+            left->data = std::move(data);
+        }
+
+        this->left = left;
+        this->right = right;
     }
+
+    inline void clear()
+    {
+        left = nullptr;
+        right = nullptr;
+    }
+
+
+public: /// todo: make private
+    NodeType* left;
+    NodeType* right;
+
+    IndexType index;
+    IndexPivotType pivot_value;
+    std::size_t pivot_index;
+
+    DataType data;
 };
+
 }
-#endif // KDTREE_NODE_HPP

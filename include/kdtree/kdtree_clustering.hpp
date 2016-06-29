@@ -1,68 +1,103 @@
-#ifndef KDTREE_CLUSTERING_HPP
-#define KDTREE_CLUSTERING_HPP
+#pragma once
 
-#include <queue>
-#include "kdtree.hpp"
-#include "kdtree_cluster_mask.hpp"
+#include <functional>
+#include <type_traits>
+#include "kdtree_node_neighbourhood.hpp"
 
-namespace kdtree {
-template<typename T, int Dim>
-struct KDTreeClustering {
-    /// TODO : cache leaves in map -> no tree access anymore afterwards - maybe faster
+namespace kdtree
+{
 
-    typedef KDTree<T, Dim>                   KDTreeType;
-    typedef typename KDTreeType::NodeIndex   NodeIndex;
-    typedef typename KDTreeType::NodePtr     NodePtr;
-    typename KDTreeType::Ptr kdtree;
-    KDTreeClusterMask<Dim>   cluster_mask;
-    std::vector<NodePtr>     queue;
-    std::size_t              cluster_count;
+struct KDTreeNodeClusteringSupport
+{
+    int cluster = -1;
+};
 
-    KDTreeClustering(const typename KDTreeType::Ptr &kdtree) :
-        kdtree(kdtree)
+template<typename TreeType>
+class KDTreeClustering
+{
+public:
+    typedef TreeType                            KDTreeType;
+    typedef KDTreeClustering<TreeType>          ClusteringType;
+    typedef typename KDTreeType::NodeType       NodeType;
+    typedef typename KDTreeType::DataType       DataType;
+    typedef typename KDTreeType::IndexTraits    IndexTraits;
+    typedef typename KDTreeType::IndexType      IndexType;
+
+    static_assert(std::is_base_of<KDTreeNodeClusteringSupport, DataType>::value,
+                  "NodeType does not have KDTreeNodeClusteringSupport");
+
+public:
+    KDTreeClustering(KDTreeType& tree) :
+        _tree(tree),
+        _cluster_count(0),
+        _neighbourhood(tree),
+        _cluster_init(&KDTreeClustering::nop1),
+        _cluster_extend(&KDTreeClustering::nop2)
     {
     }
 
-    int getCluster(const NodeIndex &index) {
-        NodePtr node;
-        if(!kdtree->find(index, node))
-            return -1;
-        return node->cluster;
+    template<typename F>
+    inline void set_cluster_init(const F& fun)
+    {
+        _cluster_init = fun;
+    }
+
+    template<typename F>
+    inline void set_cluster_extend(const F& fun)
+    {
+        _cluster_extend = fun;
     }
 
     inline void cluster()
     {
-        cluster_count = 0;
-        queue.reserve(kdtree->leafCount());
-        kdtree->getLeaves(queue, true);
-        for(NodePtr &node : queue) {
-            if(node->cluster > -1)
-                continue;
-            node->cluster = cluster_count;
-            ++cluster_count;
-            assert(node->cluster > -1);
-            clusterNode(node);
-        }
+        int cluster_idx = 0;
+
+        _tree.traverse_leafs([this, &cluster_idx](NodeType& node)
+        {
+            if (node.data.cluster > -1)
+                return;
+
+            if (!_cluster_init(node.data))
+                return;
+
+            node.data.cluster = cluster_idx;
+            ++cluster_idx;
+            cluster(node);
+        });
+
+        _cluster_count = cluster_idx;
     }
 
-    inline void clusterNode(const NodePtr &node)
+    inline std::size_t cluster_count() const
     {
-        /// check surrounding indeces
-        NodeIndex index;
-        for(std::size_t i = 0 ; i < cluster_mask.rows ; ++i) {
-            cluster_mask.applyToIndex(node->index, i, index);
-            NodePtr neighbour;
-            if(!kdtree->find(index, neighbour))
-                continue;
-            if(neighbour->cluster > -1)
-                continue;
-            assert(neighbour->cluster == -1);
-            neighbour->cluster = node->cluster;
-            clusterNode(neighbour);
-        }
-
+        return _cluster_count;
     }
 
+private:
+    inline void cluster(NodeType& node)
+    {
+        _neighbourhood.visit(node.index, [this, &node](NodeType& neighbour)
+        {
+            if (neighbour.data.cluster > -1)
+                return;
+
+            if (!_cluster_extend(node.data, neighbour.data))
+                return;
+
+            neighbour.data.cluster = node.data.cluster;
+            cluster(neighbour);
+        });
+    }
+
+    static inline constexpr bool nop1(const DataType&) { return true; }
+    static inline constexpr bool nop2(const DataType&, const DataType&) { return true; }
+
+
+private:
+    KDTreeType& _tree;
+    std::size_t _cluster_count;
+    KDTreeIndexNeigbourhood<TreeType, IndexTraits> _neighbourhood;
+    std::function<bool(const DataType&)> _cluster_init;
+    std::function<bool(const DataType&, const DataType&)> _cluster_extend;
 };
 }
-#endif // KDTREE_CLUSTERING_HPP
