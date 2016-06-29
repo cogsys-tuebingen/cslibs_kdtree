@@ -114,7 +114,7 @@ void test(const std::vector<helper::Point>& samples)
     using ms = std::chrono::duration<double, std::milli>;
 
     clock::duration total;
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 1; ++i)
     {
 
         auto start = clock::now();
@@ -125,6 +125,10 @@ void test(const std::vector<helper::Point>& samples)
             tree.insert(Index::create(pt), {pt});
 
         kdtree::buffered::KDTreeClustering<decltype(tree)> clustering(tree);
+
+        clustering.set_cluster_init([](const Data&) { return true; });
+        clustering.set_cluster_extend([](const Data&, const Data&) {  return true; });
+
         clustering.cluster();
 
         auto end = clock::now();

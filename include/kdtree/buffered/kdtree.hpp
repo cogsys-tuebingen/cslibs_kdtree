@@ -7,17 +7,20 @@
 
 namespace std
 {
-    template<>
-    struct hash<std::array<int, 3>>
+    template<std::size_t N>
+    struct hash<std::array<int, N>>
     {
-        typedef std::array<int, 3> argument_type;
+        typedef std::array<int, N> argument_type;
         typedef std::size_t result_type;
-        result_type operator()(argument_type const& s) const
+        static constexpr auto BITS = sizeof(result_type) * 8;
+        static constexpr auto SHIFT = BITS / N;
+
+        inline result_type operator()(argument_type const& s) const
         {
-            result_type const h1 ( std::abs(s[0]) );
-            result_type const h2 ( std::abs(s[1]) );
-            result_type const h3 ( std::abs(s[2]) );
-            return h1 ^ (h2 << 10) ^ (h3 << 20);
+            result_type h = std::abs(s[0]);
+            for (std::size_t i = 1; i < N; ++i)
+                h ^= std::abs(s[i]) << SHIFT;
+            return h;
         }
     };
 }
@@ -49,7 +52,7 @@ public:
         _capacity(capacity),
         _size(0),
         _nodes(capacity),
-        _node_lookup(DEFAULT_CAPACITY)
+        _bulkload_buffer(DEFAULT_CAPACITY)
     {
     }
 
@@ -63,7 +66,6 @@ public:
         _nodes.clear();
         for (std::size_t i = 0; i < _size; ++i)
             _nodes[i].clear();
-        _node_lookup.clear();
         _size = 0;
     }
 
@@ -78,30 +80,30 @@ public:
         }
         else
         {
-//            auto find = _node_lookup.find(index);
-//            if (find != _node_lookup.end())
-//                find->second->merge(std::move(data));
-//            else
-                sicker_insert(&(_nodes[0]), std::move(index), std::move(data));
+            sicker_insert(&(_nodes[0]), std::move(index), std::move(data));
         }
     }
 
-    std::unordered_map<IndexType, DataType> aggregate;
-
-    inline void prepare(IndexType index, DataType data)
+    inline void insert_bulk(IndexType index, DataType data)
     {
-        auto find = aggregate.find(index);
-        if (find != aggregate.end())
+        auto find = _bulkload_buffer.find(index);
+        if (find != _bulkload_buffer.end())
             find->second.merge(std::move(data));
         else
-            aggregate.emplace(std::move(index), std::move(data));
+            _bulkload_buffer.emplace(std::move(index), std::move(data));
     }
 
-    inline void load()
+    inline void load_bulk()
     {
-        for (std::pair<IndexType, DataType>&& pair : aggregate)
+        for (std::pair<IndexType, DataType>&& pair : _bulkload_buffer)
             insert(std::move(pair.first), std::move(pair.second));
-        aggregate.clear();
+
+        _bulkload_buffer.clear();
+    }
+
+    inline void clear_bulk()
+    {
+        _bulkload_buffer.clear();
     }
 
     inline NodeType* find(const IndexType& index)
@@ -138,8 +140,6 @@ private:
                     throw std::length_error("Capacity to small, resize not yet implemented");
 
                 node->split(&(_nodes[_size + 0]), &(_nodes[_size + 1]), std::move(index), std::move(data));
-//                _node_lookup[_nodes[_size + 0].index] = &(_nodes[_size + 0]);
-//                _node_lookup[_nodes[_size + 1].index] = &(_nodes[_size + 1]);
                 _size += 2;
             }
         }
@@ -178,7 +178,7 @@ private:
     std::size_t _capacity;
     std::size_t _size;
     std::vector<NodeType> _nodes;
-    std::unordered_map<IndexType, NodeType*> _node_lookup;
+    std::unordered_map<IndexType, DataType> _bulkload_buffer;
 };
 
 }
