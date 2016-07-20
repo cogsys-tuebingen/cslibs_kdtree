@@ -20,6 +20,7 @@ public:
     typedef DType                             DataType;
     typedef KDTree<IndexTraits, DataType>     TreeType;
     typedef KDTreeNode<IndexTraits, DataType> NodeType;
+    typedef std::shared_ptr<TreeType>         Ptr;
 
     static constexpr std::size_t DEFAULT_BULK_BUCKETS   = 1024;
 
