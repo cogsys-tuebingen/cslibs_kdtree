@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "../include/kdtree/kdtree.hpp"
+#include "../include/kdtree/kdtree_dotty.hpp"
 
 namespace testdata
 {
@@ -70,6 +71,32 @@ Points getTestdata(const std::string& file)
                     cur.y += off_y;
                     samples.emplace_back(cur);
                 }
+    }
+
+    return samples;
+}
+
+Points getTestdataSmall(const std::string& file)
+{
+    static const std::array<double, 2> OFFSETS_X{-10.0, 10.0};
+
+    Points samples;
+
+    std::ifstream in(file);
+    std::string line;
+    while (std::getline(in, line))
+    {
+        std::vector<double> values;
+        getLineContent(line, values);
+
+        Point ref = getSample(values);
+
+            for (double off_x : OFFSETS_X)
+            {
+                Point cur = ref;
+                cur.x += off_x;
+                samples.emplace_back(cur);
+            }
     }
 
     return samples;
@@ -257,6 +284,19 @@ void reuse_clustering(const Points& samples, Tree& tree)
     clustering.cluster();
 }
 
+template<typename Tree>
+void visualize(const Points& samples, Tree& tree, const std::string& outfile)
+{
+    for (const Point& sample : samples)
+        tree.insert(Index::create(sample), Data::create(sample));
+
+    kdtree::KDTreeClustering<Tree> clustering(tree);
+    clustering.cluster();
+
+    /// Visualization command for .dot files
+    kdtree::visualize::visualize_dotty(tree, outfile);
+}
+
 }
 
 int main(int argc, char* argv[])
@@ -269,9 +309,10 @@ int main(int argc, char* argv[])
 
     std::string path = argv[1];
     Points points = testdata::getTestdata(path);
+    Points points_small = testdata::getTestdataSmall(path);
     std::cout << "Testdata : " << std::endl
               << "\tFile   : " << path << std::endl
-              << "\tSamples: " << points.size() << std::endl
+              << "\tSamples: " << points.size() << " / " << points_small.size() << std::endl
               << std::endl;
 
     std::cout << "Validate: " << std::endl
@@ -312,6 +353,24 @@ int main(int argc, char* argv[])
         test::Benchmark::timing<500>("\tUnbuffered (bulk) (reuse): ", std::bind(&test::reuse_clustering_bulk<KDTreeUnbuffered>, points, std::ref(unbuffered)));
         test::Benchmark::timing<500>("\tBuffered          (reuse): ", std::bind(&test::reuse_clustering<KDTreeBuffered>, points, std::ref(buffered)));
         test::Benchmark::timing<500>("\tBuffered   (bulk) (reuse): ", std::bind(&test::reuse_clustering_bulk<KDTreeBuffered>, points, std::ref(buffered)));
+    }
+
+    std::cout << std::endl
+              << "Visualization: " << std::endl
+              << "\tCompile with: dot -Tps filename.dot -o outfile.ps" << std::endl
+              << "Runs: " << std::endl;
+
+    {
+        const std::string path = "/tmp/kdtree_unbuffered.dot";
+        KDTreeUnbuffered tree;
+        test::visualize(points_small, tree, path);
+        std::cout << "\tUnbuffered: " << path << std::endl;
+    }
+    {
+        const std::string path = "/tmp/kdtree_buffered.dot";
+        KDTreeBuffered tree;
+        test::visualize(points_small, tree, path);
+        std::cout << "\tBuffered  : " << path << std::endl;
     }
 
     return 0;

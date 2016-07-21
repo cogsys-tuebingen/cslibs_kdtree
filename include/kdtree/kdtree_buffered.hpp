@@ -109,6 +109,21 @@ public:
         }
     }
 
+    template<typename F>
+    inline void traverse_nodes(F&& fun)
+    {
+        for (std::size_t i = 0; i < _size; ++i)
+            fun(_nodes[i]);
+    }
+
+    inline const NodeType* get_root() const
+    {
+        if (_size == 0)
+            return nullptr;
+
+        return &_nodes[0];
+    }
+
 private:
     inline void sicker_insert(NodeType* node, IndexType&& index, DataType&& data)
     {

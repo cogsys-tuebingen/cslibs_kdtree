@@ -103,6 +103,21 @@ public:
             traverse_leafs_recursive(fun, _root);
     }
 
+    template<typename F>
+    inline void traverse_nodes(F&& fun)
+    {
+        if (_root)
+            traverse_nodes_recursive(fun, _root);
+    }
+
+    inline const NodeType* get_root() const
+    {
+        if (_size == 0)
+            return nullptr;
+
+        return _root;
+    }
+
 private:
     inline void sicker_insert(NodeType* node, IndexType&& index, DataType&& data)
     {
@@ -165,6 +180,17 @@ private:
         {
             traverse_leafs_recursive(fun, node->left);
             traverse_leafs_recursive(fun, node->right);
+        }
+    }
+
+    template<typename F>
+    inline void traverse_nodes_recursive(const F& fun, NodeType* node)
+    {
+        fun(*node);
+        if (!node->is_leaf())
+        {
+            traverse_nodes_recursive(fun, node->left);
+            traverse_nodes_recursive(fun, node->right);
         }
     }
 

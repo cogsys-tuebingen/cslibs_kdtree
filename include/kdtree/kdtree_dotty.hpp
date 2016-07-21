@@ -1,5 +1,4 @@
-#ifndef KDTREE_DOTTY_HPP
-#define KDTREE_DOTTY_HPP
+#pragma once
 
 #include <deque>
 #include <map>
@@ -7,11 +6,15 @@
 #include <fstream>
 #include <random>
 
-#include <kdtree/buffered_kdtree.hpp>
-#include <kdtree/kdtree.hpp>
+#include "kdtree.hpp"
 
-namespace kdtree {
-struct Color {
+namespace kdtree
+{
+namespace visualize
+{
+
+struct Color
+{
     double value[3];
 
     Color() :
@@ -19,7 +22,8 @@ struct Color {
     {
     }
 
-    Color (double r) {
+    Color (double r)
+    {
         value[0] = r;
         value[1] = 0.5;
         value[2] = 1.0;
@@ -34,7 +38,7 @@ struct Color {
         value[2] = b;
     }
 
-    void writeStyle(std::ofstream &out)
+    void writeStyle(std::ofstream& out)
     {
         out << "[style=filled, fillcolor=\""
             << value[0] << " "
@@ -44,7 +48,8 @@ struct Color {
 };
 
 template<bool full_random = false>
-struct ColorMap {
+struct ColorMap
+{
     std::map<int, Color>                   palette;
     std::default_random_engine             generator;
     std::uniform_real_distribution<double> random;
@@ -55,69 +60,81 @@ struct ColorMap {
     }
 
     void writeStyle(const int id,
-                    std::ofstream &out)
+                    std::ofstream& out)
     {
-        if(palette.find(id) == palette.end()) {
-            if(full_random)
+        if (palette.find(id) == palette.end())
+        {
+            if (full_random)
                 palette.insert(std::make_pair(id, Color(random(generator),
                                                         random(generator),
                                                         random(generator))));
             else
                 palette.insert(std::make_pair(id, Color(random(generator))));
         }
+
         palette[id].writeStyle(out);
     }
 
     void getColor(const int id,
-                  Color &color)
+                  Color& color)
     {
-        if(palette.find(id) == palette.end()) {
-            if(full_random)
+        if (palette.find(id) == palette.end())
+        {
+            if (full_random)
                 palette.insert(std::make_pair(id, Color(random(generator),
                                                         random(generator) ,
                                                         random(generator))));
             else
                 palette.insert(std::make_pair(id, Color(random(generator))));
         }
+
         color = palette[id];
     }
 };
 
-template<typename T, int Dim>
-struct Dotty {
-    typedef kdtree::KDTree<T, Dim> KDTreeType;
-    ColorMap<>                     color_palette;
+template<typename Tree>
+struct Dotty
+{
+    typedef Tree KDTree;
+    typedef typename KDTree::DataType DataType;
+    typedef typename KDTree::NodeType NodeType;
+    static constexpr auto Dim = NodeType::IndexDimension;
 
-    void write(KDTreeType &tree,
-               std::ofstream &out)
+    ColorMap<>   color_palette;
+
+    static_assert(std::is_base_of<KDTreeNodeClusteringSupport, DataType>::value,
+                  "NodeType does not have KDTreeNodeClusteringSupport");
+
+    void write(KDTree& tree,
+               std::ofstream& out)
     {
         out << "graph kdtree {" << std::endl;
         writeStyles(tree, out);
         out << std::endl;
-        typename KDTreeType::NodePtr root = tree.getRoot();
+        auto root = tree.get_root();
         write(root, out);
         out << "}" << std::endl;
     }
 
-    void writeStyles(KDTreeType &tree, std::ofstream &out)
+    void writeStyles(KDTree& tree, std::ofstream& out)
     {
-        std::vector<typename KDTreeType::NodePtr> nodes;
-        tree.getNodes(nodes);
-        for(typename KDTreeType::NodePtr &node : nodes)
+        auto visitor = [&](NodeType& node)
         {
-            writeNode(node,  out);
-            if(node->cluster >= 0) {
+            writeNode(&node,  out);
+            if (node.data.cluster >= 0)
+            {
                 out << " ";
-                color_palette.writeStyle(node->cluster, out);
+                color_palette.writeStyle(node.data.cluster, out);
             }
             out << std::endl;
-        }
+        };
+        tree.traverse_nodes(visitor);
     }
 
-    void write(typename KDTreeType::NodePtr &root,
-               std::ofstream &out)
+    void write(const NodeType* root,
+               std::ofstream& out)
     {
-        std::deque<typename KDTreeType::NodePtr> lefts;
+        std::deque<const NodeType*> lefts;
         runLeft(root, lefts);
         for(size_t i = 0 ; i < lefts.size() ; ++i) {
             writeNode(lefts.at(i), out);
@@ -125,126 +142,56 @@ struct Dotty {
                 out << "-- ";
         }
         out << std::endl;
-        for(typename KDTreeType::NodePtr &left : lefts)
+        for(const NodeType* left : lefts)
             runRight(left, out);
     }
 
-    void runLeft(typename KDTreeType::NodePtr &left,
-                 std::deque<typename KDTreeType::NodePtr> &lefts)
+    void runLeft(const NodeType* left,
+                 std::deque<const NodeType*>& lefts)
     {
-        if(left) {
-            lefts.push_back(left);
-            runLeft(left->left, lefts);
-        }
-    }
-
-    void runRight(const typename KDTreeType::NodePtr &parent,
-                  std::ofstream &out)
-    {
-        out << "  " << std::endl;
-        writeNode(parent, out);
-        if(parent->right) {
-            out << "-- ";
-            write(parent->right, out);
-        }
-    }
-
-    void writeNode(const typename KDTreeType::NodePtr &node,
-                   std::ofstream &out)
-    {
-        out << "\"" << node.get() << " ";
-        out << "[";
-        for(int j = 0 ; j < Dim ; ++j) {
-            out << node->index[j];
-            if(j < Dim-1)
-                out << " ";
-        }
-        out << "]\"" << " ";
-    }
-
-};
-
-namespace buffered {
-template<typename NodeType>
-struct Dotty {
-    typedef kdtree::buffered::KDTree<NodeType> KDTreeType;
-    ColorMap<> color_palette;
-
-    void write(KDTreeType &tree,
-               std::ofstream &out)
-    {
-        out << "graph kdtree {" << std::endl;
-        writeStyles(tree, out);
-        out << std::endl;
-        NodeType *root = tree.getRoot();
-        write(root, out);
-        out << "}" << std::endl;
-    }
-
-    void writeStyles(KDTreeType &tree, std::ofstream &out)
-    {
-        std::vector<NodeType*> nodes;
-        tree.getNodesDynamic(nodes);
-        for(const NodeType *node : nodes)
+        if( left)
         {
-            writeNode(node,  out);
-            if(node->cluster >= 0) {
-                out << " ";
-                color_palette.writeStyle(node->cluster, out);
-            }
-            out << std::endl;
-        }
-    }
-
-    void write(NodeType* root,
-               std::ofstream &out)
-    {
-        std::deque<NodeType*> lefts;
-        runLeft(root, lefts);
-        for(size_t i = 0 ; i < lefts.size() ; ++i) {
-            writeNode(lefts.at(i), out);
-            if(i < lefts.size() - 1)
-                out << "-- ";
-        }
-        out << std::endl;
-        for(NodeType *left : lefts)
-            runRight(left, out);
-    }
-
-    void runLeft(NodeType *left,
-                 std::deque<NodeType*> &lefts)
-    {
-        if(left) {
             lefts.push_back(left);
             runLeft(left->left, lefts);
         }
     }
 
-    void runRight(const NodeType *parent,
-                  std::ofstream &out)
+    void runRight(const NodeType* parent,
+                  std::ofstream& out)
     {
         out << "  " << std::endl;
         writeNode(parent, out);
-        if(parent->right) {
+        if (parent->right)
+        {
             out << "-- ";
             write(parent->right, out);
         }
     }
 
-    void writeNode(const NodeType *node,
-                   std::ofstream &out)
+    void writeNode(const NodeType* node,
+                   std::ofstream& out)
     {
         out << "\"" << node << " ";
         out << "[";
-        for(int j = 0 ; j < NodeType::Dimension ; ++j) {
+        for (int j = 0 ; j < Dim ; ++j)
+        {
             out << node->index[j];
-            if(j < NodeType::Dimension-1)
+            if (j < Dim - 1)
                 out << " ";
         }
         out << "]\"" << " ";
     }
 
 };
+
+template<typename Tree>
+void visualize_dotty(Tree& tree, const std::string& filename)
+{
+    Dotty<Tree> vis;
+    std::ofstream out(filename);
+    vis.write(tree, out);
+    out.flush();
+}
+
 }
 }
-#endif // KDTREE_DOTTY_HPP

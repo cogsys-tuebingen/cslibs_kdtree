@@ -37,6 +37,7 @@ add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/kdtree_node.hpp
     include/kdtree/kdtree_unbuffered.hpp
     include/kdtree/kdtree_buffered.hpp
+    include/kdtree/kdtree_dotty.hpp
     include/kdtree/kdtree.hpp
 )
 
