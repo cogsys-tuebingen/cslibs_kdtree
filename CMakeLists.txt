@@ -27,20 +27,17 @@ catkin_package(
 
 include_directories(include)
 
-
-add_executable(kd-tree-test
-    src/kd-tree-test.cpp
+add_executable(kdtree-test
+    src/kdtree-test.cpp
 )
 
-
 add_custom_target(show_kdtree_headers_in_qt SOURCES
-    include/kdtree/kdtree_cluster_mask.hpp
     include/kdtree/kdtree_clustering.hpp
+    include/kdtree/kdtree_node_neighbourhood.hpp
     include/kdtree/kdtree_node.hpp
-    include/kdtree/kdtree.hpp
-    include/kdtree/buffered_kdtree_clustering.hpp
-    include/kdtree/buffered_kdtree_node.hpp
-    include/kdtree/buffered_kdtree.hpp
+    include/kdtree/kdtree_unbuffered.hpp
+    include/kdtree/kdtree_buffered.hpp
     include/kdtree/kdtree_dotty.hpp
+    include/kdtree/kdtree.hpp
 )
 
