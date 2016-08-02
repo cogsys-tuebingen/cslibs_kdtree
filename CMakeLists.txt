@@ -41,3 +41,5 @@ add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/kdtree.hpp
 )
 
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
