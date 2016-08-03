@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <memory>
+#include <limits>
+#include "index.hpp"
 #include "kdtree_node.hpp"
 
 namespace kdtree
@@ -35,9 +37,11 @@ public:
         _root(nullptr),
         _bulkload_buffer(DEFAULT_BULK_BUCKETS)
     {
+        _max_index.fill(std::numeric_limits<typename IndexType::value_type>::min());
+        _min_index.fill(std::numeric_limits<typename IndexType::value_type>::max());
     }
 
-    ~KDTree()
+    virtual ~KDTree()
     {
         clear();
     }
@@ -197,6 +201,10 @@ private:
 private:
     std::size_t _size;
     NodeType*   _root;
+
+    IndexType   _min_index;
+    IndexType   _max_index;
+
     std::unordered_map<IndexType, DataType> _bulkload_buffer;
 };
 
