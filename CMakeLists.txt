@@ -41,6 +41,7 @@ add_custom_target(show_kdtree_headers_in_qt SOURCES
     include/kdtree/kdtree.hpp
     include/kdtree/array.hpp
     include/kdtree/index.hpp
+    include/kdtree/page.hpp
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/

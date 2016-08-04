@@ -23,6 +23,10 @@ public:
     typedef KDTree<IndexTraits, DataType>     TreeType;
     typedef KDTreeNode<IndexTraits, DataType> NodeType;
     typedef std::shared_ptr<TreeType>         Ptr;
+    typedef ArrayOperations<ITraits::Dimension,
+                            typename IndexType::value_type,
+                            typename IndexType::value_type> AO;
+
 
     static constexpr std::size_t DEFAULT_BULK_BUCKETS   = 1024;
 
@@ -66,6 +70,8 @@ public:
         }
         else
         {
+            AO::cwise_max(index, _max_index);
+            AO::cwise_min(index, _min_index);
             sicker_insert(_root, std::move(index), std::move(data));
         }
     }
@@ -81,6 +87,7 @@ public:
 
     inline void load_bulk()
     {
+        /// may be get that indirection lost // directly use sicker_insert
         for (std::pair<IndexType, DataType>&& pair : _bulkload_buffer)
             insert(std::move(pair.first), std::move(pair.second));
 
