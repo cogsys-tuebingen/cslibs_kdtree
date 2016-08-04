@@ -7,12 +7,13 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <cstring>
 
 namespace kdtree {
-template<std::size_t Dim, typename T>
+template<typename T, std::size_t Dim>
 class Array {
 public:
-    typedef typename Array<Dim, T>       Type;
+    typedef Array<T, Dim>                Type;
     typedef std::array<std::size_t, Dim> Size;
     typedef std::array<std::size_t, Dim> Index;
     typedef std::array<std::size_t, Dim> Step;
@@ -37,54 +38,31 @@ public:
         data_ptr = data.data();
     }
 
-    Array(const Array &other) :
-        data(other.data),
-        data_ptr(data.data()),
-        data_size(other.data_size),
-        size(other.size),
-        steps(other.steps)
-    {
-    }
-
-    inline Array & operator = (const Array &other)
-    {
-        if(this != &other) {
-            data = other.data;
-            data_ptr = data.data();
-            data_size = other.data_size;
-            size = other.size;
-            steps = other.steps;
-        }
-        return *this;
-    }
+    Array(const Array &other) = delete;
+    Array & operator = (const Array &other) = delete;
 
     inline T & at(const Index &_index)
     {
         std::size_t pos = Array::pos(_index);
-        if(std::isnan(pos))
-            throw std::out_of_range("Index was out of range!");
-
         return data_ptr[pos];
     }
 
     inline T & at(const Index &_index) const
     {
         std::size_t pos = Array::pos(_index);
-        if(std::isnan(pos))
-            throw std::out_of_range("Index was out of range!");
-
         return data_ptr[pos];
     }
 
     inline void reset(const T &_v)
     {
-        std::memset(data_ptr, _v, data_size * sizeof(T));
+        data.resize(data_size, _v);
+        data_ptr = data.data();
     }
 
     inline void printInfo() const
     {
         std::cout << "[Array :] " << (data_size * sizeof(T)) / (1024.0 * 1024.0) << "MB" << std::endl;
-        std::cout << "         ";
+        std::cout << "[Array :] ";
         for(std::size_t i = 0 ; i < Dim ; ++i) {
             std::cout << " " << size[i];
         }
@@ -97,7 +75,7 @@ private:
         for(std::size_t i = 0 ; i < Dim ; ++i) {
             std::size_t id = _index[i];
             if(id > size[i]) {
-                return std::numeric_limits<std::size_t>::quiet_NaN();
+                throw  std::out_of_range("Index was out of range!");
             }
             pos += id * steps[i];
         }
