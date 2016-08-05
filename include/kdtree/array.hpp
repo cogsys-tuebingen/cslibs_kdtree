@@ -83,10 +83,10 @@ private:
         return pos;
     }
 
+    Size            size;
     std::vector<T>  data;
     T*              data_ptr;
     std::size_t     data_size;
-    Size            size;
     Step            steps;
 
 };

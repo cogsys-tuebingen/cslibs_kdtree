@@ -6,6 +6,7 @@
 
 #include "../include/kdtree/kdtree.hpp"
 #include "../include/kdtree/kdtree_dotty.hpp"
+#include "../include/kdtree/page_clustering.hpp"
 
 namespace testdata
 {

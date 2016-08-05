@@ -14,7 +14,6 @@ class Page {
 public:
     static_assert(Depth > 1, "Depth > 1 required!");
 
-    typedef Page<T,Depth>                  Type;
     typedef std::array<std::size_t, Depth> Size;
     typedef std::array<std::size_t, Depth> Index;
     typedef std::shared_ptr<Page>          Ptr;
@@ -144,7 +143,7 @@ private:
     Table<0,T> table;
 
     template<typename S>
-    inline std::string str(const S &value)
+    inline static std::string str(const S &value)
     {
         std::stringstream ss;
         ss << value;

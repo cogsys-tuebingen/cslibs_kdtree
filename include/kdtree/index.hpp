@@ -2,6 +2,7 @@
 #define INDEX_HPP
 
 #include <array>
+#include <limits>
 
 namespace kdtree {
 
@@ -27,6 +28,23 @@ struct ArrayOperations {
         for(std::size_t i = 0 ; i < Dim ; ++i) {
             _dst[i] = (dst_type) _src[i];
         }
+    }
+
+    static inline bool is_zero(const src_array_type &_src)
+    {
+        bool is_zero = true;
+        for(std::size_t i = 0 ; i < Dim ; ++i)
+            is_zero &= _src[i] == 0;
+        return is_zero;
+    }
+
+    static inline bool equals (const src_array_type &_a,
+                               const src_array_type &_b)
+    {
+        bool same = true;
+        for(std::size_t i = 0 ; i < Dim ; ++i)
+            same &= _a[i] == _b[i];
+        return same;
     }
 
     static inline dst_array_type add(const src_array_type &_a,
@@ -62,6 +80,7 @@ struct ArrayOperations {
         for(std::size_t i = 0 ; i < Dim ; ++i) {
             dst[i] = (dst_type)(_a[i] - _b[i]);
         }
+        return dst;
     }
 
     static inline void sub(dst_array_type &_dst,
@@ -133,6 +152,24 @@ struct ArrayOperations {
         for(std::size_t i = 0 ; i < Dim ; ++i) {
             _dst[i] = std::max(_a[i], _b[i]);
         }
+    }
+
+    static inline dst_array_type min()
+    {
+        dst_array_type dst;
+        for(std::size_t i = 0 ; i < Dim ; ++i) {
+            dst[i] = std::numeric_limits<D>::min();
+        }
+        return dst;
+    }
+
+    static inline dst_array_type max()
+    {
+        dst_array_type dst;
+        for(std::size_t i = 0 ; i < Dim ; ++i) {
+            dst[i] = std::numeric_limits<D>::max();
+        }
+        return dst;
     }
 };
 }

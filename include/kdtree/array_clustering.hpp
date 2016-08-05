@@ -7,24 +7,26 @@
 
 namespace kdtree {
 template<typename Type, int Dimension>
-struct ArrayClustering {
-
-    typedef std::array<int, Dimension>           DataIndex;
-    typedef Array<Type, Dimension>::Index        ArrayIndex;
-    typedef detail::fill<Type, Dimension>        MaskFiller;
-    typedef typename MaskFiller::Type            MaskType;
-    typedef ArrayOperations<Dimension, int, int> AO;
+class ArrayClustering {
+public:
+    typedef std::array<int, Dimension>                   DataIndex;
+    typedef typename Array<Type, Dimension>::Index       ArrayIndex;
+    typedef detail::fill<int, Dimension>                 MaskFiller;
+    typedef typename MaskFiller::Type                    MaskType;
+    typedef ArrayOperations<Dimension, int, int>         AO;
+    typedef ArrayOperations<Dimension, int, std::size_t> AOA;
 
     ArrayClustering(std::vector<Type*>     &_entries,
-                   Array<Type*, Dim>       &_page,
+                   Array<Type*, Dimension> &_array,
                    DataIndex               &_min_index,
                    DataIndex               &_max_index) :
         cluster_count(0),
         entries(_entries),
-        array(_page),
+        array(_array),
         min_index(_min_index),
         max_index(_max_index)
     {
+        MaskFiller::assign(offsets);
     }
 
     inline void cluster()
@@ -43,10 +45,10 @@ private:
     MaskType offsets;
     int      cluster_count;
 
-    std::vector<Type*> &entries;
-    Array<Type*, Dim>  &array;
-    DataIndex           min_index;
-    DataIndex           max_index;
+    std::vector<Type*>       &entries;
+    Array<Type*, Dimension>  &array;
+    DataIndex                 min_index;
+    DataIndex                 max_index;
 
     inline constexpr Type apply(const Type& base, const Type& offset)
     {
@@ -64,7 +66,7 @@ private:
             AO::add(entry->index, offset, index);
 
             bool out_of_bounds = false;
-            for(std::size_t j = 0 ; j < Dim ; ++j) {
+            for(std::size_t j = 0 ; j < Dimension ; ++j) {
                 out_of_bounds |= index[j] < min_index[j];
                 out_of_bounds |= index[j] > max_index[j];
                 page_index[j]  = index[j] - min_index[j];

@@ -1,24 +1,24 @@
 #pragma once
 
-namespace kdtree {
-
 #include "page.hpp"
 #include "fill.hpp"
 #include "index.hpp"
 #include <assert.h>
 
+namespace kdtree {
 template<typename Type, int Dimension>
 class PageClustering {
 public:
 
+    typedef Page<Type, Dimension>                PageType;
     typedef std::array<int, Dimension>           DataIndex;
-    typedef Page<Type, Dimension>::Index         PageIndex;
-    typedef detail::fill<Type, Dimension>        MaskFiller;
+    typedef typename PageType::Index             PageIndex;
+    typedef detail::fill<int, Dimension>         MaskFiller;
     typedef typename MaskFiller::Type            MaskType;
     typedef ArrayOperations<Dimension, int, int> AO;
 
     PageClustering(std::vector<Type*>      &_entries,
-                   Page<Type*, Dim>        &_page,
+                   PageType                &_page,
                    DataIndex               &_min_index,
                    DataIndex               &_max_index) :
         cluster_count(0),
@@ -27,6 +27,7 @@ public:
         min_index(_min_index),
         max_index(_max_index)
     {
+        MaskFiller::assign(offsets);
     }
 
     inline void cluster()
@@ -46,7 +47,7 @@ private:
     int      cluster_count;
 
     std::vector<Type*> &entries;
-    Page<Type*, Dim>   &page;
+    PageType           &page;
     DataIndex           min_index;
     DataIndex           max_index;
 
@@ -66,7 +67,7 @@ private:
             AO::add(entry->index, offset, index);
 
             bool out_of_bounds = false;
-            for(std::size_t j = 0 ; j < Dim ; ++j) {
+            for(std::size_t j = 0 ; j < Dimension ; ++j) {
                 out_of_bounds |= index[j] < min_index[j];
                 out_of_bounds |= index[j] > max_index[j];
                 page_index[j]  = index[j] - min_index[j];
