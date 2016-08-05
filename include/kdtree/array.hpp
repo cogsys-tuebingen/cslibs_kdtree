@@ -1,5 +1,4 @@
-#ifndef ARRAY_HPP
-#define ARRAY_HPP
+#pragma once
 
 #include <vector>
 #include <array>
@@ -18,6 +17,8 @@ public:
     typedef std::array<std::size_t, Dim> Index;
     typedef std::array<std::size_t, Dim> Step;
     typedef std::shared_ptr<Array>       Ptr;
+
+    /// size :  size[i] = max_index[i] - min_index[i] + 1;
 
     Array(const Size &_size) :
         size(_size),
@@ -89,9 +90,5 @@ private:
     Step            steps;
 
 };
-
-
-
-
 }
-#endif // ARRAY_HPP
+

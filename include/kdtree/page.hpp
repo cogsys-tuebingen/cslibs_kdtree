@@ -1,5 +1,4 @@
-#ifndef PAGE_HPP
-#define PAGE_HPP
+#pragma once
 
 #include <vector>
 #include <array>
@@ -10,15 +9,6 @@
 #include <sstream>
 
 namespace kdtree {
-
-template<typename S>
-inline std::string str(const S &value)
-{
-    std::stringstream ss;
-    ss << value;
-    return ss.str();
-}
-
 template<typename T, std::size_t Depth>
 class Page {
 public:
@@ -28,6 +18,8 @@ public:
     typedef std::array<std::size_t, Depth> Size;
     typedef std::array<std::size_t, Depth> Index;
     typedef std::shared_ptr<Page>          Ptr;
+
+    /// size :  size[i] = max_index[i] - min_index[i] + 1;
 
     //// ------------------------- internal helper classes for allocation ------------------------------ ////
     template<std::size_t Stage, typename V>
@@ -150,7 +142,14 @@ public:
 
 private:
     Table<0,T> table;
+
+    template<typename S>
+    inline std::string str(const S &value)
+    {
+        std::stringstream ss;
+        ss << value;
+        return ss.str();
+    }
+
 };
 }
-
-#endif // PAGE_HPP
