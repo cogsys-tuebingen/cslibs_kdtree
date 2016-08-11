@@ -4,9 +4,9 @@
 #include <cmath>
 #include <chrono>
 
-#include "../include/kdtree/kdtree.hpp"
-#include "../include/kdtree/kdtree_dotty.hpp"
-#include "../include/kdtree/page_clustering.hpp"
+#include "../include/cslibs_kdtree/kdtree.hpp"
+#include "../include/cslibs_kdtree/kdtree_dotty.hpp"
+#include "../include/cslibs_kdtree/page_clustering.hpp"
 
 namespace testdata
 {
