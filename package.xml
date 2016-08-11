@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>kdtree</name>
+  <name>cslibs_kdtree</name>
   <version>0.0.0</version>
   <description>
     The kd-tree package contains a template-based generic kdtree library.
