@@ -32,19 +32,19 @@ add_executable(kdtree-test
 )
 
 add_custom_target(show_kdtree_headers_in_qt SOURCES
-    include/kdtree/kdtree_clustering.hpp
-    include/kdtree/kdtree_node_neighbourhood.hpp
-    include/kdtree/kdtree_node.hpp
-    include/kdtree/kdtree_unbuffered.hpp
-    include/kdtree/kdtree_buffered.hpp
-    include/kdtree/kdtree_dotty.hpp
-    include/kdtree/kdtree.hpp
-    include/kdtree/array.hpp
-    include/kdtree/index.hpp
-    include/kdtree/page.hpp
-    include/kdtree/page_clustering.hpp
-    include/kdtree/array_clustering.hpp
-    include/kdtree/fill.hpp
+    include/cslibs_kdtree/kdtree_clustering.hpp
+    include/cslibs_kdtree/kdtree_node_neighbourhood.hpp
+    include/cslibs_kdtree/kdtree_node.hpp
+    include/cslibs_kdtree/kdtree_unbuffered.hpp
+    include/cslibs_kdtree/kdtree_buffered.hpp
+    include/cslibs_kdtree/kdtree_dotty.hpp
+    include/cslibs_kdtree/kdtree.hpp
+    include/cslibs_kdtree/array.hpp
+    include/cslibs_kdtree/index.hpp
+    include/cslibs_kdtree/page.hpp
+    include/cslibs_kdtree/page_clustering.hpp
+    include/cslibs_kdtree/array_clustering.hpp
+    include/cslibs_kdtree/fill.hpp
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
