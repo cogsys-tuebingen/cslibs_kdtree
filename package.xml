@@ -7,8 +7,8 @@
     Essentially any data type can be used with the library.
   </description>
   
-  <author>Richard Hanten</author>
-  <author>Philipp Kuhlmann</author>
+  <author email="richard.hanten@uni-tuebingen.de">hanten</author>
+  <author email="philipp.kuhlmann@student.uni-tuebingen.de">kuhlmann</author>
   <maintainer email="richard.hanten@uni-tuebingen.de">hanten</maintainer>
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
