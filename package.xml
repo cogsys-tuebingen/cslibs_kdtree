@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <package>
   <name>cslibs_kdtree</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>
     The kd-tree package contains a template-based generic kdtree library.
     Essentially any data type can be used with the library.
   </description>
+  
+  <author>Richard Hanten</author>
+  <author>Philipp Kuhlmann</author>
   <maintainer email="richard.hanten@uni-tuebingen.de">hanten</maintainer>
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
